@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Forge 3D // Premium 3D Print Files & Interactive 3D Showcase</title>
+  <meta name="description" content="Discover, inspect in realtime 3D, and download verified 3D printable STL and GLB models with instant Razorpay checkout. Featuring McLaren F1 supercar scale models and precision engineering assets.">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Google model-viewer for Realtime WebGL 3D GLB Rendering -->
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+  
+  <!-- Razorpay Official Checkout SDK -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  
+  <!-- Canvas Confetti for Payment Celebration -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+  <!-- Ambient Background Lighting Glows -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+  <div class="ambient-glow glow-3"></div>
+
+  <!-- Top Announcement / Razorpay Status Bar -->
+  <header class="top-announcement" id="top-announcement">
+    <div class="announcement-content">
+      <span class="pulse-indicator"></span>
+      <span class="announcement-text">
+        <strong>Razorpay Digital Payments Enabled:</strong> Instant automated download unlock for STL &amp; GLB files upon checkout.
+      </span>
+      <button class="text-link-btn" id="open-razorpay-guide-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+        Setup Guide &amp; Key Settings
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Navigation Bar -->
+  <nav class="navbar" id="main-navbar">
+    <div class="nav-container">
+      <div class="nav-brand">
+        <div class="brand-logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+          </svg>
+        </div>
+        <div class="brand-text-block">
+          <span class="brand-title">FORGE<span class="brand-accent">//3D</span></span>
+          <span class="brand-tagline">Additive Manufacturing Files</span>
+        </div>
+      </div>
+
+      <div class="nav-search-bar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="catalog-search-input" placeholder="Search models, STLs, categories (e.g., McLaren, Dragon)..." aria-label="Search models">
+      </div>
+
+      <div class="nav-actions">
+        <!-- Currency Selector -->
+        <div class="currency-toggle" title="Switch Currency">
+          <button class="currency-btn active" data-currency="INR">₹ INR</button>
+          <button class="currency-btn" data-currency="USD">$ USD</button>
+        </div>
+
+        <!-- My Library Button (Purchased Downloads) -->
+        <button class="nav-btn-icon" id="open-library-btn" title="Purchased Downloads Library">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          <span class="library-badge" id="purchased-count-badge">0</span>
+          <span class="nav-btn-label">My Files</span>
+        </button>
+
+        <!-- Cart Button -->
+        <button class="nav-btn-primary cart-trigger" id="cart-drawer-toggle" aria-label="View Shopping Cart">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+          <span class="cart-label">Cart</span>
+          <span class="cart-count-badge" id="cart-badge">0</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <!-- HERO SECTION: Interactive 3D Showcase (McLaren F1 GLB) -->
+    <section class="hero-showcase" id="hero-3d-stage">
+      <div class="container hero-grid">
+        <!-- Product Details Column -->
+        <div class="hero-info-card">
+          <div class="badge-row">
+            <span class="spec-pill pill-orange">
+              <span class="spec-dot"></span> FEATURED MASTERWORK // 1:18 SCALE
+            </span>
+            <span class="spec-pill pill-cyan">REALTIME 3D GLB</span>
+            <span class="rating-badge">★ 4.9 (128 Maker Reviews)</span>
+          </div>
+
+          <h1 class="hero-title">McLaren F1 GTR Supercar Scale 3D Print File</h1>
+          
+          <p class="hero-description">
+            Ultra-detailed collector-grade replica of the legendary McLaren F1 supercar. Digitally sculpted with precision aerodynamic contours, authentic dihedral door seams, racing rear wing, and optimized slicer tolerance geometry.
+          </p>
+
+          <div class="price-container">
+            <div class="price-main-block">
+              <span class="price-label">Instant Digital Package Cost</span>
+              <div class="price-display">
+                <span class="currency-symbol" id="hero-currency-symbol">₹</span>
+                <span class="price-amount" id="hero-price">1,499</span>
+                <span class="price-original" id="hero-price-original">₹2,499</span>
+                <span class="discount-pill">40% OFF</span>
+              </div>
+            </div>
+            <div class="license-type-badge">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+              Standard Maker &amp; Print License
+            </div>
+          </div>
+
+          <!-- Print Specification Grid -->
+          <div class="specs-grid">
+            <div class="spec-item">
+              <span class="spec-label">Print Time</span>
+              <span class="spec-value">~12h 45m</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Recommended Layer</span>
+              <span class="spec-value">0.12 - 0.16 mm</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Material Usage</span>
+              <span class="spec-value">148g PLA+ / Resin</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Formats Included</span>
+              <span class="spec-value">.GLB + .STL + .3MF</span>
+            </div>
+          </div>
+
+          <!-- Primary CTA Buttons -->
+          <div class="hero-actions-row">
+            <button class="btn-primary" id="hero-add-to-cart-btn" data-id="mclaren-f1">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+              <span>Add McLaren F1 to Cart</span>
+            </button>
+
+            <button class="btn-secondary" id="hero-buy-now-btn" data-id="mclaren-f1">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+              <span>Buy Now with Razorpay</span>
+            </button>
+          </div>
+
+          <!-- Gated Download Trigger Indicator for McLaren F1 -->
+          <div class="download-status-card" id="hero-download-status-card">
+            <div class="status-icon-wrapper locked" id="hero-status-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            </div>
+            <div class="status-content">
+              <div class="status-headline" id="hero-status-headline">Download Locked (Purchase Required)</div>
+              <div class="status-subtext" id="hero-status-subtext">Complete checkout via Razorpay to immediately unlock verified .STL and .GLB archive files.</div>
+            </div>
+            <button class="btn-download-action locked" id="hero-download-action-btn" disabled>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              <span id="hero-download-btn-text">Locked 🔒</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3D Interactive Stage Column -->
+        <div class="hero-viewer-card">
+          <div class="viewer-header-bar">
+            <div class="viewer-badge">
+              <span class="live-blink"></span>
+              <span>INTERACTIVE 3D GLB VIEWPORT</span>
+            </div>
+            <div class="viewer-meta">
+              <span>Mclaren_f1.glb (15.1 MB)</span>
+            </div>
+          </div>
+
+          <div class="model-viewport-wrapper">
+            <!-- Loading Spinner Indicator -->
+            <div class="model-loading-overlay" id="model-loader">
+              <div class="loading-ring"></div>
+              <span>Streaming 3D Mesh &amp; Shaders...</span>
+            </div>
+
+            <!-- Google model-viewer WebGL element -->
+            <model-viewer
+              id="mclaren-viewer"
+              src="./models/Mclaren_f1.glb"
+              poster="./assets/images/mclaren_f1.jpg"
+              alt="McLaren F1 GTR 3D Printable Supercar Model"
+              camera-controls
+              auto-rotate
+              rotation-per-second="20deg"
+              shadow-intensity="1.5"
+              shadow-softness="0.8"
+              exposure="1.1"
+              environment-image="neutral"
+              camera-orbit="45deg 75deg auto"
+              min-camera-orbit="auto auto 60%"
+              max-camera-orbit="auto auto 200%"
+              field-of-view="35deg"
+              interaction-prompt="auto">
+            </model-viewer>
+
+            <!-- Floating 3D Gesture Help Tip -->
+            <div class="viewport-gesture-hint">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v8"></path><path d="M8 12h8"></path></svg>
+              Drag to Orbit 360° · Scroll to Zoom · Use Buttons to Rotate
+            </div>
+          </div>
+
+          <!-- DEDICATED ROTATE LEFT AND RIGHT CONTROLS BAR -->
+          <div class="viewer-controls-bar">
+            <div class="controls-group">
+              <!-- ROTATE LEFT BUTTON -->
+              <button class="viewer-ctrl-btn" id="ctrl-rotate-left" title="Rotate Model Left" aria-label="Rotate Model Left">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                <span>Rotate Left</span>
+              </button>
+
+              <!-- AUTO SPIN TOGGLE -->
+              <button class="viewer-ctrl-btn active" id="ctrl-toggle-autospin" title="Toggle Auto-Spin" aria-label="Toggle Auto-Spin">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                <span id="autospin-label">Auto Spin: ON</span>
+              </button>
+
+              <!-- ROTATE RIGHT BUTTON -->
+              <button class="viewer-ctrl-btn" id="ctrl-rotate-right" title="Rotate Model Right" aria-label="Rotate Model Right">
+                <span>Rotate Right</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+              </button>
+            </div>
+
+            <div class="controls-group secondary">
+              <!-- RESET CAMERA -->
+              <button class="viewer-ctrl-btn-icon" id="ctrl-reset-view" title="Reset View Angle" aria-label="Reset View Angle">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
+              </button>
+
+              <!-- ZOOM IN -->
+              <button class="viewer-ctrl-btn-icon" id="ctrl-zoom-in" title="Zoom In" aria-label="Zoom In">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+              </button>
+
+              <!-- ZOOM OUT -->
+              <button class="viewer-ctrl-btn-icon" id="ctrl-zoom-out" title="Zoom Out" aria-label="Zoom Out">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRUST & SPECIFICATION PILLARS -->
+    <section class="trust-pillars-section">
+      <div class="container pillars-grid">
+        <div class="pillar-card">
+          <div class="pillar-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          </div>
+          <div class="pillar-info">
+            <h3>100% Manifold Geometry</h3>
+            <p>Guaranteed error-free mesh slicing for Bambu Studio, Cura, and PrusaSlicer.</p>
+          </div>
+        </div>
+
+        <div class="pillar-card">
+          <div class="pillar-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+          </div>
+          <div class="pillar-info">
+            <h3>Razorpay Instant Checkout</h3>
+            <p>Pay securely via UPI, Google Pay, Credit/Debit Cards, or Netbanking.</p>
+          </div>
+        </div>
+
+        <div class="pillar-card">
+          <div class="pillar-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </div>
+          <div class="pillar-info">
+            <h3>Instant Automated Delivery</h3>
+            <p>Digital archive download (.ZIP with .STL &amp; .GLB) unlocks immediately upon payment.</p>
+          </div>
+        </div>
+
+        <div class="pillar-card">
+          <div class="pillar-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+          </div>
+          <div class="pillar-info">
+            <h3>Verified Print Tested</h3>
+            <p>Every file is test-printed on FDM &amp; SLA machines before being published.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRODUCT CATALOG SECTION -->
+    <section class="catalog-section" id="catalog-section">
+      <div class="container">
+        <div class="catalog-header-row">
+          <div>
+            <div class="section-tag">CATALOG &amp; STOREFRONT</div>
+            <h2 class="section-title">Explore 3D Printable Files</h2>
+          </div>
+          
+          <div class="catalog-filter-controls">
+            <!-- Category Tabs -->
+            <div class="category-tabs" id="category-tabs">
+              <button class="cat-tab active" data-category="all">All Models</button>
+              <button class="cat-tab" data-category="automotive">Supercars</button>
+              <button class="cat-tab" data-category="figures">Articulated</button>
+              <button class="cat-tab" data-category="engineering">Engineering</button>
+              <button class="cat-tab" data-category="decor">Home &amp; Decor</button>
+            </div>
+
+            <!-- Sort By -->
+            <div class="sort-selector">
+              <label for="sort-dropdown">Sort:</label>
+              <select id="sort-dropdown" aria-label="Sort products">
+                <option value="featured">Featured First</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+                <option value="rating">Top Rated</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic Product Cards Grid -->
+        <div class="products-grid" id="products-grid">
+          <!-- Rendered dynamically by app.js -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- SLIDE-OUT CART DRAWER -->
+  <aside class="cart-drawer-overlay" id="cart-drawer-overlay">
+    <div class="cart-drawer" id="cart-drawer">
+      <div class="cart-drawer-header">
+        <div class="cart-title-wrap">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+          <h3>Shopping Cart</h3>
+          <span class="cart-items-counter" id="cart-items-counter">(0 items)</span>
+        </div>
+        <button class="close-btn" id="close-cart-btn" aria-label="Close cart drawer">&times;</button>
+      </div>
+
+      <div class="cart-drawer-body" id="cart-items-container">
+        <!-- Cart Items will be injected here -->
+      </div>
+
+      <div class="cart-drawer-footer" id="cart-footer">
+        <div class="cart-summary-line">
+          <span>Subtotal</span>
+          <span id="cart-subtotal">₹0</span>
+        </div>
+        <div class="cart-summary-line discount" id="cart-discount-row" style="display: none;">
+          <span>Promo Discount</span>
+          <span id="cart-discount">-₹0</span>
+        </div>
+        <div class="cart-summary-line tax">
+          <span>Estimated Taxes / GST</span>
+          <span id="cart-tax">Included</span>
+        </div>
+        <div class="cart-summary-line total">
+          <span>Total Payable</span>
+          <span class="total-amount" id="cart-total">₹0</span>
+        </div>
+
+        <!-- Coupon Box -->
+        <div class="coupon-box">
+          <input type="text" id="coupon-input" placeholder="Promo code (try 'PRINT3D' for 15% off)" aria-label="Coupon code">
+          <button class="coupon-btn" id="apply-coupon-btn">Apply</button>
+        </div>
+
+        <!-- Checkout Buttons -->
+        <div class="checkout-actions-block">
+          <button class="btn-checkout-primary" id="razorpay-checkout-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+            <span>Proceed to Razorpay Checkout</span>
+          </button>
+
+          <!-- Sandbox Simulator for Fast Testing without live API key -->
+          <button class="btn-checkout-simulator" id="simulator-checkout-btn" title="Simulate successful payment instantly without Razorpay account">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            <span>Instant Sandbox Test Checkout (Demo)</span>
+          </button>
+        </div>
+
+        <div class="checkout-security-notice">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          256-bit Encrypted Checkout · Files Unlocked Immediately
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MY PURCHASED DOWNLOADS LIBRARY MODAL -->
+  <div class="modal-backdrop" id="library-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          <h3>My Purchased 3D Files Library</h3>
+        </div>
+        <button class="close-btn modal-close-trigger" aria-label="Close modal">&times;</button>
+      </div>
+
+      <div class="modal-body" id="library-content">
+        <!-- Rendered by app.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- RAZORPAY SETUP GUIDE & CREDENTIALS MODAL -->
+  <div class="modal-backdrop" id="razorpay-guide-modal">
+    <div class="modal-card wide">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="razorpay-logo-badge">R</div>
+          <div>
+            <h3>Razorpay Integration &amp; Setup Guide</h3>
+            <p class="modal-subtitle">How to configure your live/test payments and unlock digital 3D files.</p>
+          </div>
+        </div>
+        <button class="close-btn modal-close-trigger" aria-label="Close modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="setup-tabs-content">
+          <!-- Live API Key Configuration Form -->
+          <div class="setup-card key-config-card">
+            <h4>1. Your Razorpay Key ID Configuration</h4>
+            <p>Paste your Razorpay <strong>Key ID</strong> below. It will be stored in your browser's local storage and used for all checkout calls.</p>
+            
+            <div class="key-input-row">
+              <input type="text" id="razorpay-key-input" placeholder="rzp_test_... or rzp_live_..." aria-label="Razorpay Key ID">
+              <button class="btn-primary" id="save-razorpay-key-btn">Save Key</button>
+            </div>
+            <div class="key-status-msg" id="key-status-msg"></div>
+            <small class="helper-text">Leave blank to use the built-in Sandbox Simulator or default test mode key.</small>
+          </div>
+
+          <!-- Step-by-Step Instructions -->
+          <div class="setup-card steps-card">
+            <h4>2. How to get your Razorpay Credentials (Step-by-Step)</h4>
+            
+            <div class="step-list">
+              <div class="step-item">
+                <span class="step-num">1</span>
+                <div class="step-desc">
+                  <strong>Create Free Razorpay Account:</strong> Go to <a href="https://razorpay.com" target="_blank" rel="noopener">razorpay.com</a> and sign up for a business or individual account.
+                </div>
+              </div>
+
+              <div class="step-item">
+                <span class="step-num">2</span>
+                <div class="step-desc">
+                  <strong>Toggle Test Mode:</strong> In your Razorpay Dashboard, toggle the switch in the top header from <em>Live Mode</em> to <strong>Test Mode</strong> (orange badge).
+                </div>
+              </div>
+
+              <div class="step-item">
+                <span class="step-num">3</span>
+                <div class="step-desc">
+                  <strong>Generate API Keys:</strong> Navigate to <code>Settings &gt; API Keys &gt; Generate Key</code>. Copy the <strong>Key ID</strong> (starts with <code>rzp_test_</code>).
+                </div>
+              </div>
+
+              <div class="step-item">
+                <span class="step-num">4</span>
+                <div class="step-desc">
+                  <strong>Paste Key ID Above:</strong> Paste your <code>rzp_test_...</code> into the input field above and click <strong>Save Key</strong>.
+                </div>
+              </div>
+
+              <div class="step-item">
+                <span class="step-num">5</span>
+                <div class="step-desc">
+                  <strong>Test Checkout Flow:</strong> Add any 3D model to your cart and click <em>Proceed to Razorpay Checkout</em>. In the Razorpay modal, select UPI (e.g. <code>success@razorpay</code>) or Cards (use any Razorpay test card). Upon completion, your STL/GLB files will immediately unlock!
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Production Backend Notes -->
+          <div class="setup-card backend-card">
+            <h4>3. Production Architecture (For Live Stores)</h4>
+            <p>For a production e-commerce store with real customer payments:</p>
+            <ul>
+              <li><strong>Backend Order Creation:</strong> Call <code>/v1/orders</code> from your server using your Key Secret to generate an authorized <code>order_id</code>.</li>
+              <li><strong>Payment Signature Verification:</strong> Verify the cryptographic HMAC SHA-256 signature (<code>razorpay_order_id + "|" + razorpay_payment_id</code>) using your Key Secret to prevent tampering.</li>
+              <li><strong>Secure Webhooks:</strong> Configure a webhook listener for <code>payment.captured</code> to securely dispatch one-time presigned download links.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PURCHASE SUCCESS & INSTANT DOWNLOAD MODAL -->
+  <div class="modal-backdrop" id="success-modal">
+    <div class="modal-card celebration">
+      <div class="modal-body text-center">
+        <div class="celebration-badge">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </div>
+        
+        <h2>Payment Successful!</h2>
+        <p class="celebration-subtitle">Your transaction has been verified via Razorpay. Your 3D printable files are now unlocked and ready to download.</p>
+
+        <div class="receipt-card">
+          <div class="receipt-row">
+            <span>Payment ID:</span>
+            <strong id="receipt-payment-id">pay_sample123</strong>
+          </div>
+          <div class="receipt-row">
+            <span>Order Date:</span>
+            <strong id="receipt-date">October 18, 2026</strong>
+          </div>
+          <div class="receipt-row">
+            <span>Amount Paid:</span>
+            <strong id="receipt-amount">₹1,499</strong>
+          </div>
+        </div>
+
+        <div class="unlocked-files-section">
+          <h3>Your Unlocked Download Packages</h3>
+          <div class="unlocked-items-list" id="unlocked-items-list">
+            <!-- Injected by app.js -->
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-primary" id="done-success-btn">Go to Model Catalog</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRODUCT QUICK VIEW & 3D SPECS MODAL -->
+  <div class="modal-backdrop" id="quick-view-modal">
+    <div class="modal-card wide">
+      <div class="modal-header">
+        <h3 id="qv-title">Model Specifications</h3>
+        <button class="close-btn modal-close-trigger" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body qv-body" id="qv-body">
+        <!-- Rendered by app.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOATING TOAST NOTIFICATION -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <div class="brand-title">FORGE<span class="brand-accent">//3D</span></div>
+        <p>Premium printable digital assets engineered for precision additive manufacturing. Compatible with Bambu Lab, Prusa, Creality, Voron, and SLA resin printers.</p>
+        <div class="payment-badges">
+          <span class="badge-pill">Razorpay Verified</span>
+          <span class="badge-pill">UPI / Cards / NetBanking</span>
+          <span class="badge-pill">Instant Automated Unlock</span>
+        </div>
+      </div>
+      
+      <div class="footer-col">
+        <h4>Print Formats</h4>
+        <ul>
+          <li>.STL (Stereolithography)</li>
+          <li>.GLB (Interactive Web 3D)</li>
+          <li>.3MF (Slicer Preset Profiles)</li>
+          <li>.STEP (CAD Solid Bodies)</li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Makers &amp; Support</h4>
+        <ul>
+          <li><a href="#" id="footer-razorpay-link">Razorpay Setup Guide</a></li>
+          <li><a href="#" id="footer-library-link">Purchased Files Library</a></li>
+          <li><a href="#hero-3d-stage">McLaren F1 3D Viewer</a></li>
+          <li><a href="#catalog-section">All Printable Models</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="container footer-bottom-flex">
+        <span>&copy; 2026 Forge 3D Print Studio. All rights reserved.</span>
+        <span>Secure Digital Delivery &amp; Realtime WebGL Inspection</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
